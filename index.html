@@ -1,0 +1,393 @@
+<!decotype html>
+<html>
+<head>
+ <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no user-scalable=no">
+    
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <!--bootstrap 4-->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+<script>
+
+
+
+function Plane(name,color){
+this.name=name;
+this.color=color;
+
+this.passengers=Math.floor((Math.random() * 10))+1;
+this.remaning_fuel=Math.floor((Math.random() * 10))+1;
+this.burning_rate=Math.floor((Math.random() * 10))+1;
+this.maximum_waiting_time=this.remaning_fuel*this.burning_rate;
+this.priority_number=Math.floor(( (1+this.remaning_fuel)/(this.passengers+this.burning_rate) )*10);   //min:1 max:50
+this.waiting_time=0; 
+
+}
+
+
+function ATC(){
+
+this.colors=['blue','green','yellow','red','brown','black','gray','pink','blue','purple'];
+this.plane_number=0;
+this.planes=[];
+
+
+this.plane_arrival=function(){   //heap_insert_key
+
+var plane_name='PLANE-'+this.plane_number;
+this.plane_number=this.plane_number+1;
+
+var random_number=Math.floor((Math.random() * 10));
+var plane_color=this.colors[random_number];
+p1=new Plane(plane_name,plane_color);
+
+
+
+
+
+var actual_priority_number=p1.priority_number;
+p1.priority_number=100000;
+this.planes.push(p1);
+
+this.heap_decrease_key((this.planes.length-1),actual_priority_number);
+
+
+
+
+
+var queue_html='';
+var airport_html='';
+
+for(obj in this.planes){
+queue_html+='<div class="queue-box" id="queue'+this.planes[obj].name+'" style="background-color:'+this.planes[obj].color+'"><p>'+this.planes[obj].name+'</p><p>PN: '+this.planes[obj].priority_number+'</p></div>';
+}
+
+
+var i=0;
+for(i=(this.planes.length-1); i>=0; i--){
+airport_html+='<i id="airport'+this.planes[i].name+'" class="fa fa-plane" style="font-size:20px; color:'+this.planes[i].color+'"></i>';
+}
+
+
+
+$("#queue").html(queue_html);
+$("#airport").html(airport_html);
+
+
+
+ 
+ var report_html='<p><strong>'+p1.name+'</strong> is waiting for landing.</p><hr />';
+ $("#r_box").prepend(report_html);
+
+}
+
+this.heap_decrease_key=function(i,key){
+
+if(key>=this.planes[i].priority_number){
+//error
+return;
+}
+
+this.planes[i].priority_number=key;
+
+
+var parent=Math.floor(i/2);
+//console.log(parent);
+while(i>0 && this.planes[parent].priority_number>this.planes[i].priority_number){
+
+/*var tmp=this.planes[parent].priority_number;
+this.planes[parent].priority_number=this.planes[i].priority_number;
+this.planes[i].priority_number=tmp;*/
+
+
+var tmp=this.planes[parent];
+this.planes[parent]=this.planes[i];
+this.planes[i]=tmp;
+
+/*
+var tmp_properties=[];
+tmp_properties['id']='queue'+this.planes[parent].name;
+tmp_properties['name']=this.planes[parent].name;
+tmp_properties['priority_number']=this.planes[parent].priority_number;
+tmp_properties['color']=this.planes[parent].color;
+
+//console.log(tmp_properties);
+
+$('queue'+this.planes[parent].name).css({
+"background-color":$('queue'+this.planes[i].name).css("background-color"),
+"priority_number":$('queue'+this.planes[i].name).css("priority_number")
+});
+$('queue'+this.planes[parent].name).attr("id",$('queue'+this.planes[i].name).attr("id"));
+*/
+
+
+
+i=parent;
+parent=Math.floor(i/2);
+
+}
+
+}
+
+
+
+this.plane_landing=function(){   //heap_extract_min
+
+
+if(this.planes.length<1){
+//error
+return;
+}
+
+
+
+var min=this.planes[0];
+
+this.planes[0]=this.planes.pop();
+this.min_heapify(0);
+
+
+ var report_html='<p style="color:green;"><strong>'+min.name+'</strong> is landed successfully.</p><hr />';
+ $("#r_box").prepend(report_html);
+
+
+}
+
+
+this.min_heapify=function(index_number){
+
+var left_child_index=2*index_number+1;
+var right_child_index=2*index_number+2;
+
+var left_child=this.planes[left_child_index];
+var right_child=this.planes[right_child_index];
+var index=this.planes[index_number];
+
+var smallest='';
+var smallest_index_number='';
+//find the smallest element in index, left_sub_child and right_sub_child
+
+if(!left_child && !right_child){
+//index is smallest do nothing
+//console.log('casea');
+smallest=index;
+}
+
+else if(!right_child){
+
+//just compare index with left child
+if(index.priority_number<=left_child.priority_number){
+
+smallest=index;
+}
+else{
+smallest=left_child;
+smallest_index_number=left_child_index;
+}
+
+}
+
+else if(!left_child){
+//just compare index with right child
+if(index.priority_number<=right_child.priority_number){
+smallest=index;
+}
+else{
+smallest=right_child;
+smallest_index_number=right_child_index;
+}
+}
+
+else{
+//console.log('cased');
+smallest=index;
+
+if(left_child.priority_number<smallest.priority_number && right_child.priority_number<smallest.priority_number){
+
+if(left_child.priority_number<right_child.priority_number){
+
+smallest=left_child;
+smallest_index_number=left_child_index;
+}
+else if(right_child.priority_number<left_child.priority_number){
+smallest=right_child;
+smallest_index_number=right_child_index;
+}
+
+
+}
+else if(left_child.priority_number<smallest.priority_number){
+smallest=left_child;
+smallest_index_number=left_child_index;
+}
+else if(right_child.priority_number<smallest.priority_number){
+smallest=right_child;
+smallest_index_number=right_child_index;
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+if(index==smallest){
+
+//do nothing
+return;
+}
+else{
+//exchange index with smallest
+this.planes[index_number]=smallest;
+this.planes[smallest_index_number]=index
+
+this.min_heapify(smallest_index_number);
+}
+
+
+
+
+
+
+
+
+
+}
+
+}
+
+
+
+a=new ATC();
+Continue_Plane_Arrival();
+Continue_Plane_landing();
+
+
+async function Continue_Plane_Arrival(){
+let promise = new Promise((resolve, reject) => { 
+    setTimeout(() => resolve("Arrival!"), 5000)
+  });
+  let result = await promise; // wait till the promise resolves (*)
+
+  
+  
+  
+  
+  a.plane_arrival();
+
+for(index in a.planes){
+console.log(a.planes[index].name+'---'+a.planes[index].priority_number);
+}
+console.log('------------');
+  
+  
+  
+  
+  
+  Continue_Plane_Arrival();
+  }
+
+
+  
+  
+  
+ async function Continue_Plane_landing(){
+let promise = new Promise((resolve, reject) => { 
+    setTimeout(() => resolve("Landing!"), 20000)
+  });
+  let result = await promise; // wait till the promise resolves (*)
+
+  
+  
+  
+  
+  a.plane_landing();
+
+for(index in a.planes){
+console.log(a.planes[index].name+'---'+a.planes[index].priority_number);
+}
+console.log('------------');
+  
+  
+  
+  
+  
+  Continue_Plane_landing();
+  }
+
+
+</script>
+	
+  </head>
+    <body>
+	
+	
+<header class="header"  align="center">
+<h4>Automatic Air Traffic Controller Using Heap Based Priority Queue</h4>   
+</header>
+	
+	<div class="container-fluid">
+	
+	
+
+	
+	
+	
+	
+	<div class="row">
+	
+	<div class="col-xl-2">
+	<div class="section" id="queue" style="max-height:500px; height:500px; max-width:150px; width:150px;" align="center">
+	</div>
+	<h4>Priority Queue</h4>
+	</div>
+	
+	<div class="col-xl-3">
+	<div class="section" id="r_box" style="max-height:400px; height:400px; max-width:400px;" align="center">
+	</div>
+	<div align="center"><h4>Operational Report</h4></div>
+	</div>
+	
+	<div class="col-xl-3">
+	<div class="section" id="m_box" style="max-height:400px; height:400px; max-width:400px;" align="center">
+	This box is used to show alert messages about crashing.
+	</div>
+	<div align="center"><h4>ATC Outbox</h4></div>
+	</div>
+	
+	<div class="col-xl-4">
+	<div style="float:right;">
+	Traffic Level: <select> <option>Low</option> <option>High</option> </select>
+	</div>
+<div style="margin-left:150px; margin-top:100px;">
+<div id="airport" class="loader boundary"></div>
+</div>
+<div align="center"><h4>Airport</h4></div>
+<div align="center"><p id="status"></p></div>
+<br /><br /><br /><br /><br />
+<p align="center">Connect to Internet for better performance.</p>
+<p align="center">The aging feature, crash case feature and traffic level feature is not implemented.</p>
+	</div>
+	
+	
+	</div>
+	
+	
+	
+	
+	</div>
+	</body>
+	</html>

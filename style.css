@@ -1,0 +1,39 @@
+.header{
+	margin-bottom:20px; background-color:#505262; color:white; padding:10px;
+}
+
+.section{
+	
+	border:1px solid black; overflow-y:scroll; padding:5px;
+}
+
+
+.boundary{
+border: 10px solid #f3f3f3;
+border-radius: 50%;
+animation: spin 10s linear infinite;
+}
+
+.loader {
+ width: 150px;
+ height:150px;
+ }
+
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
+
+.queue-box{
+	
+	
+	border:1px solid black;
+	width:100px; 
+	margin-bottom:1px; 
+	color:white;
+}
